@@ -1,0 +1,26 @@
+name: Daily Habit Check Cron Job
+
+on:
+  # Schedule the job to run daily at 23:59 UTC
+  schedule:
+    # Runs at 23:59 UTC every day
+    - cron: '59 23 * * *'
+  # Allows manual trigger from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  trigger_habit_check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Supabase Edge Function
+        run: |
+          # Use curl to send a POST request to the Supabase Function URL
+          curl -X POST \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+          -H "Content-Type: application/json" \
+          -d '{"secret": "${{ secrets.CRON_SECRET }}"}' \
+          ${{ secrets.SUPABASE_FUNCTION_URL }}
+        env:
+          SUPABASE_FUNCTION_URL: ${{ secrets.SUPABASE_FUNCTION_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
