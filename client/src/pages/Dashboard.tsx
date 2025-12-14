@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';\nimport { HabitService, Habit } from '@/lib/HabitService';
+import { useAuth } from '@/contexts/AuthContext';
+import { HabitService, Habit } from '@/lib/HabitService';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
