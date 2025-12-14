@@ -58,7 +58,7 @@ export const HabitService = {
     async addHabit(name: string): Promise<void> {
         const user = (await supabase.auth.getUser()).data.user;
         if (!user) {
-            throw new Error('User not authenticated');
+            throw new Error('Please confirm your email before adding habits.');
         }
 
         const { error } = await supabase
