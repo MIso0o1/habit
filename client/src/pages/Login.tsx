@@ -59,7 +59,8 @@ export default function Login() {
                                 id="password"
                                 type="password"
                                 placeholder="Enter your password"
-                               value={password}\n                                onChange={(e) => setPassword(e.target.value)}
+                               value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 required
                                 disabled={loading}
                             />
