@@ -71,7 +71,9 @@ export default function Register() {
                                 id="password"
                                 type="password"
                                 placeholder="Enter a password"
-                                value={password}\n                                onChange={(e) => setPassword(e.target.value)}                                required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
                                 disabled={loading}
                             />
                         </div>
