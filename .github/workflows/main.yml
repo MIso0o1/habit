@@ -16,6 +16,7 @@ jobs:
         run: |
           # Use curl to send a POST request to the Supabase Function URL
           curl -X POST \
+          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Content-Type: application/json" \
           -d '{"secret": "${{ secrets.CRON_SECRET }}"}' \
           ${{ secrets.SUPABASE_FUNCTION_URL }}
