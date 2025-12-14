@@ -2,7 +2,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { Info, Leaf, Wind, BarChart3, TreeDeciduous, TreePine } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";\nimport { HabitService } from "@/lib/HabitService";
 import { Link, useLocation } from "wouter";
 import CherryTreeViewer from "@/components/CherryTreeViewer";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,15 +27,8 @@ export default function Home() {
 
   const fetchTreeHealth = async () => {
     try {
-      const response = await fetch('/api/tree-health', {
-        method: 'GET',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTreeHealth(data.treeHealth);
-      }
+      const health = await HabitService.fetchTreeHealth();
+      setTreeHealth(health);
     } catch (error) {
       console.error('Failed to fetch tree health:', error);
     }

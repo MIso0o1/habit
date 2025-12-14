@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 
 export default function Login() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const { login } = useAuth();
@@ -18,7 +18,7 @@ export default function Login() {
         setLoading(true);
 
         try {
-            await login(username, password);
+            await login(email, password);
             toast.success('Login successful!');
             setLocation('/dashboard');
         } catch (error: any) {
@@ -38,15 +38,15 @@ export default function Login() {
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <label htmlFor="username" className="text-sm font-medium">
-                                Username
+                            <label htmlFor="email" className="text-sm font-medium">
+                                Email
                             </label>
                             <Input
-                                id="username"
+                                id="email"
                                 type="text"
-                                placeholder="Enter your username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="Enter your email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                                 disabled={loading}
                             />
@@ -59,8 +59,7 @@ export default function Login() {
                                 id="password"
                                 type="password"
                                 placeholder="Enter your password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                               value={password}\n                                onChange={(e) => setPassword(e.target.value)}
                                 required
                                 disabled={loading}
                             />

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 
 export default function Register() {
-    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -30,7 +30,7 @@ export default function Register() {
         setLoading(true);
 
         try {
-            await register(username, password);
+            await register(email, password);
             toast.success('Registration successful!');
             setLocation('/dashboard');
         } catch (error: any) {
@@ -50,15 +50,15 @@ export default function Register() {
                 <CardContent>
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="space-y-2">
-                            <label htmlFor="username" className="text-sm font-medium">
-                                Username
+                            <label htmlFor="email" className="text-sm font-medium">
+                                Email
                             </label>
                             <Input
-                                id="username"
+                                id="email"
                                 type="text"
-                                placeholder="Choose a username"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
+                                placeholder="Enter your email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 required
                                 disabled={loading}
                             />
@@ -71,9 +71,7 @@ export default function Register() {
                                 id="password"
                                 type="password"
                                 placeholder="Enter a password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
+                                value={password}\n                                onChange={(e) => setPassword(e.target.value)}                                required
                                 disabled={loading}
                             />
                         </div>

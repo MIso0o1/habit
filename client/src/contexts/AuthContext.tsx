@@ -1,11 +1,13 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
     isAuthenticated: boolean;
-    userId: number | null;
+    user: User | null;
     loading: boolean;
-    login: (username: string, password: string) => Promise<void>;
-    register: (username: string, password: string) => Promise<void>;
+    login: (email: string, password: string) => Promise<void>;
+    register: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -13,97 +15,79 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [userId, setUserId] = useState<number | null>(null);
+    const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Check authentication status on mount
+    // Supabase Auth Listener
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const response = await fetch('/api/check-auth', {
-                    method: 'GET',
-                    credentials: 'include',
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setIsAuthenticated(true);
-                    setUserId(data.userId);
-                } else {
-                    setIsAuthenticated(false);
-                    setUserId(null);
-                }
-            } catch (error) {
-                console.error('Auth check failed:', error);
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session) {
+                setUser(session.user);
+                setIsAuthenticated(true);
+            } else {
+                setUser(null);
                 setIsAuthenticated(false);
-                setUserId(null);
-            } finally {
-                setLoading(false);
             }
-        };
+            setLoading(false);
+        });
 
-        checkAuth();
+        // Initial check
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                setUser(session.user);
+                setIsAuthenticated(true);
+            }
+            setLoading(false);
+        });
+
+        return () => {
+            authListener.subscription.unsubscribe();
+        };
     }, []);
 
-    const register = async (username: string, password: string) => {
-        const response = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ username, password }),
+    const register = async (email: string, password: string) => {
+        const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
         });
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Registration failed');
+        if (error) {
+            throw new Error(error.message);
         }
-
-        setIsAuthenticated(true);
-        // Get the user ID from the response or check auth
-        const checkResponse = await fetch('/api/check-auth', {
-            method: 'GET',
-            credentials: 'include',
-        });
-        if (checkResponse.ok) {
-            const data = await checkResponse.json();
-            setUserId(data.userId);
+        
+        if (data.user) {
+            setUser(data.user);
+            setIsAuthenticated(true);
         }
     };
 
-    const login = async (username: string, password: string) => {
-        const response = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ username, password }),
+    const login = async (email: string, password: string) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
         });
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Login failed');
+        if (error) {
+            throw new Error(error.message);
         }
 
-        setIsAuthenticated(true);
-        const checkResponse = await fetch('/api/check-auth', {
-            method: 'GET',
-            credentials: 'include',
-        });
-        if (checkResponse.ok) {
-            const data = await checkResponse.json();
-            setUserId(data.userId);
+        if (data.user) {
+            setUser(data.user);
+            setIsAuthenticated(true);
         }
     };
 
     const logout = async () => {
-        await fetch('/api/logout', {
-            method: 'POST',
-            credentials: 'include',
-        });
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Logout error:', error);
+        }
+        setUser(null);
         setIsAuthenticated(false);
-        setUserId(null);
     };
 
     return (
-        <AuthContext.Provider value={{ isAuthenticated, userId, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, user, loading, login, register, logout }}>
             {children}
         </AuthContext.Provider>
     );

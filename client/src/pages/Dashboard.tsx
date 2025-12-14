@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';\nimport { HabitService, Habit } from '@/lib/HabitService';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Trash2, LogOut, Plus } from 'lucide-react';
 
-interface Habit {
+// interface Habit is now imported from HabitService
     id: number;
     name: string;
     created_at: string;
@@ -16,7 +16,7 @@ interface Habit {
 }
 
 export default function Dashboard() {
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, user } = useAuth();
     const [, setLocation] = useLocation();
     const [habits, setHabits] = useState<Habit[]>([]);
     const [newHabitName, setNewHabitName] = useState('');
@@ -32,23 +32,14 @@ export default function Dashboard() {
 
     // Fetch habits on mount
     useEffect(() => {
-        if (isAuthenticated) {
+        if (isAuthenticated && user) {
             fetchHabits();
         }
     }, [isAuthenticated]);
 
     const fetchHabits = async () => {
         try {
-            const response = await fetch('/api/habits', {
-                method: 'GET',
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch habits');
-            }
-
-            const data = await response.json();
+            const data = await HabitService.fetchHabits();
             setHabits(data);
         } catch (error) {
             console.error('Fetch habits error:', error);
@@ -69,17 +60,7 @@ export default function Dashboard() {
         setAddingHabit(true);
 
         try {
-            const response = await fetch('/api/habits', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ name: newHabitName }),
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'Failed to add habit');
-            }
+            await HabitService.addHabit(newHabitName);
 
             toast.success('Habit added successfully!');
             setNewHabitName('');
@@ -93,14 +74,10 @@ export default function Dashboard() {
 
     const handleLogHabit = async (habitId: number, isLogged: boolean) => {
         try {
-            const method = isLogged ? 'DELETE' : 'POST';
-            const response = await fetch(`/api/habits/${habitId}/log`, {
-                method,
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to update habit log');
+            if (isLogged) {
+                await HabitService.unlogHabit(habitId);
+            } else {
+                await HabitService.logHabit(habitId);
             }
 
             toast.success(isLogged ? 'Habit unlogged' : 'Habit logged for today!');
@@ -116,14 +93,7 @@ export default function Dashboard() {
         }
 
         try {
-            const response = await fetch(`/api/habits/${habitId}`, {
-                method: 'DELETE',
-                credentials: 'include',
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to delete habit');
-            }
+            await HabitService.deleteHabit(habitId);
 
             toast.success('Habit deleted successfully!');
             await fetchHabits();
