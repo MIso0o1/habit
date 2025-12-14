@@ -9,12 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { Trash2, LogOut, Plus } from 'lucide-react';
 
-// interface Habit is now imported from HabitService
-    id: number;
-    name: string;
-    created_at: string;
-    logs: string[];
-}
+
 
 export default function Dashboard() {
     const { isAuthenticated, logout, user } = useAuth();
