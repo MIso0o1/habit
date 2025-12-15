@@ -254,7 +254,8 @@ export default function Home() {
 
           <div className="mt-auto pt-8 border-t border-border/20">
             <p className="text-xs text-center text-muted-foreground/50 font-sans tracking-widest">
-              Created by Michal Šomský michal.somsky@protonmail.com
+              Created by Michal Šomský michal.somsky@protonmail.com 
+              3D Model created by https://sketchfab.com/local.yany
             </p>
           </div>
         </div>
