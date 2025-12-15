@@ -1,3 +1,5 @@
+
+AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -117,3 +119,4 @@ export const useAuth = () => {
         throw new Error('useAuth must be used within AuthProvider');
     }
     return context;
+};
