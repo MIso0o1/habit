@@ -46,6 +46,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }, []);
 
     const register = async (email: string, password: string) => {
+        // Detect the user's current IANA timezone
+        const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -56,6 +58,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         if (data.user) {
+            // Automatically set the user's timezone and initialize last_check_date
+            // NOTE: This assumes you have a Row Level Security (RLS) policy
+            // that allows the user to update their own profile on sign-up.
+            const { error: profileError } = await supabase
+                .from('user_profiles')
+                .update({ 
+                    timezone: userTimezone,
+                    // Set to a very old date to ensure the first cron check runs immediately
+                    last_check_date: '1970-01-01' 
+                })
+                .eq('id', data.user.id);
+
+            if (profileError) {
+                console.error('Error setting user timezone after registration:', profileError);
+            }
+
             setUser(data.user);
             setIsAuthenticated(true);
         }
@@ -99,4 +117,3 @@ export const useAuth = () => {
         throw new Error('useAuth must be used within AuthProvider');
     }
     return context;
-};
