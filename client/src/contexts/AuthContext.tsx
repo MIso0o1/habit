@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { User } from '@supabase/supabase-js';
@@ -52,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Detect the user's current IANA timezone
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         console.log('Detected timezone:', userTimezone);
+        
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -62,17 +62,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         if (data.user) {
-            // Automatically set the user's timezone and initialize last_check_date
-            // NOTE: This assumes you have a Row Level Security (RLS) policy
-            // that allows the user to update their own profile on sign-up.
+            // CRITICAL FIX: Changed from UPDATE to UPSERT to handle race conditions with database triggers.
+            // This ensures the timezone is correctly set, even if a trigger has already created the row.
             const { error: profileError } = await supabase
                 .from('user_profiles')
-                .update({ 
+                .upsert({ 
+                    id: data.user.id, // Primary key for upsert
                     timezone: userTimezone,
                     // Set to a very old date to ensure the first cron check runs immediately
                     last_check_date: '1970-01-01' 
-                })
-                .eq('id', data.user.id);
+                }, { onConflict: 'id' }); // Use 'id' as the conflict target
 
             if (profileError) {
                 console.error('Error setting user timezone after registration:', profileError);
