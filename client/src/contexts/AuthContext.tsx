@@ -62,20 +62,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         if (data.user) {
-            // CRITICAL FIX: Changed from UPDATE to UPSERT to handle race conditions with database triggers.
-            // This ensures the timezone is correctly set, even if a trigger has already created the row.
-            const { error: profileError } = await supabase
-                .from('user_profiles')
-                .upsert({ 
-                    id: data.user.id, // Primary key for upsert
-                    timezone: userTimezone,
-                    // Set to a very old date to ensure the first cron check runs immediately
-                    last_check_date: '1970-01-01' 
-                }, { onConflict: 'id' }); // Use 'id' as the conflict target
+            // --- RESILIENT UPDATE LOGIC START ---
+            
+            // 1. Define the update payload
+            const payload = { 
+                timezone: userTimezone,
+                last_check_date: '1970-01-01' 
+            };
+
+            // 2. Function to attempt the update
+            const attemptUpdate = async () => {
+                return supabase
+                    .from('user_profiles')
+                    .update(payload)
+                    .eq('id', data.user.id)
+                    .select(); // Use .select() to get the row count
+            };
+
+            // 3. Try the update immediately
+            let { error: profileError, data: updateData } = await attemptUpdate();
+
+            // 4. If the update failed (likely because the row wasn't created yet), wait and try again
+            // The update fails if there's an error OR if no rows were returned (meaning no row was updated)
+            if (profileError || !updateData || updateData.length === 0) {
+                console.warn('Initial profile update failed. Waiting 1 second for database trigger to create row...');
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                
+                // Try the update again
+                ({ error: profileError, data: updateData } = await attemptUpdate());
+            }
 
             if (profileError) {
                 console.error('Error setting user timezone after registration:', profileError);
             }
+            
+            // --- RESILIENT UPDATE LOGIC END ---
 
             setUser(data.user);
             setIsAuthenticated(true);
