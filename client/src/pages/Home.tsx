@@ -8,10 +8,12 @@ import { Link, useLocation } from "wouter";
 import CherryTreeViewer from "@/components/CherryTreeViewer";
 import { useAuth } from "@/contexts/AuthContext";
 import HelpDialog from "@/components/HelpDialog";
+import { useSEO } from "@/hooks/useSEO";
 
 type TreeType = 'cherry' | 'ficus';
 
 export default function Home() {
+  useSEO('home');
   const [showInfo, setShowInfo] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [selectedTree, setSelectedTree] = useState<TreeType>('cherry');
@@ -255,6 +257,7 @@ export default function Home() {
           <div className="mt-auto pt-8 border-t border-border/20">
             <p className="text-xs text-center text-muted-foreground/50 font-sans tracking-widest">
               Created by Michal Šomský michal.somsky@protonmail.com 
+              <br />
               3D Model created by https://sketchfab.com/local.yany
             </p>
           </div>

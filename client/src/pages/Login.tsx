@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { useSEO } from '@/hooks/useSEO';
 
 export default function Login() {
+    useSEO('login');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -69,14 +71,24 @@ export default function Login() {
                             {loading ? 'Logging in...' : 'Login'}
                         </Button>
                     </form>
-                    <div className="mt-4 text-center text-sm">
-                        <span className="text-gray-600">Don't have an account? </span>
-                        <button
-                            onClick={() => setLocation('/register')}
-                            className="text-blue-600 hover:underline font-medium"
-                        >
-                            Register here
-                        </button>
+                    <div className="mt-4 space-y-3">
+                        <div className="text-center text-sm">
+                            <span className="text-gray-600">Don't have an account? </span>
+                            <button
+                                onClick={() => setLocation('/register')}
+                                className="text-blue-600 hover:underline font-medium"
+                            >
+                                Register here
+                            </button>
+                        </div>
+                        <div className="text-center text-sm">
+                            <button
+                                onClick={() => setLocation('/forgot-password')}
+                                className="text-blue-600 hover:underline font-medium"
+                            >
+                                Forgot your password?
+                            </button>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

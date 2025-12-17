@@ -10,6 +10,8 @@ interface AuthContextType {
     login: (email: string, password: string) => Promise<void>;
     register: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
+    resetPassword: (email: string) => Promise<void>;
+    updatePassword: (newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const register = async (email: string, password: string) => {
         // Detect the user's current IANA timezone
         const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        console.log('Detected timezone:', userTimezone);
         const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -105,8 +108,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(false);
     };
 
+    const resetPassword = async (email: string) => {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`,
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+    };
+
+    const updatePassword = async (newPassword: string) => {
+        const { error } = await supabase.auth.updateUser({
+            password: newPassword,
+        });
+
+        if (error) {
+            throw new Error(error.message);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, loading, login, register, logout }}>
+        <AuthContext.Provider value={{ isAuthenticated, user, loading, login, register, logout, resetPassword, updatePassword }}>
             {children}
         </AuthContext.Provider>
     );
