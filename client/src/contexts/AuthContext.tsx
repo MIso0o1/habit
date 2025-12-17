@@ -22,7 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Supabase Auth Listener
     useEffect(() => {
-        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 setUser(session.user);
                 setIsAuthenticated(true);
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => {
-            authListener.subscription.unsubscribe();
+            subscription.unsubscribe();
         };
     }, []);
 
@@ -64,38 +64,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data.user) {
             // --- RESILIENT UPDATE LOGIC START ---
             
-            // 1. Define the update payload
             const payload = { 
                 timezone: userTimezone,
                 last_check_date: '1970-01-01' 
             };
 
-            // 2. Function to attempt the update
             const attemptUpdate = async () => {
                 return supabase
                     .from('user_profiles')
                     .update(payload)
                     .eq('id', data.user.id)
-                    .select(); // Use .select() to get the row count
+                    .select();
             };
 
-            // 3. Try the update immediately
+            // 1. Try the update immediately
             let { error: profileError, data: updateData } = await attemptUpdate();
 
-            // 4. If the update failed (likely because the row wasn't created yet), wait and try again
-            // The update fails if there's an error OR if no rows were returned (meaning no row was updated)
+            // 2. If the update failed (likely because the row wasn't created yet), wait and try again
             if (profileError || !updateData || updateData.length === 0) {
                 console.warn('Initial profile update failed. Waiting 1 second for database trigger to create row...');
-                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 
                 // Try the update again
                 ({ error: profileError, data: updateData } = await attemptUpdate());
+                
+                // --- NEW DEBUGGING LOGIC ---
+                if (profileError) {
+                    console.error('Second update attempt FAILED:', profileError);
+                } else if (updateData && updateData.length > 0) {
+                    console.log('Second update attempt SUCCEEDED. Rows updated:', updateData.length);
+                } else {
+                    console.error('Second update attempt FAILED: No error object, but no rows updated.');
+                }
+                // --- END NEW DEBUGGING LOGIC ---
             }
 
-            if (profileError) {
-                console.error('Error setting user timezone after registration:', profileError);
-            }
-            
             // --- RESILIENT UPDATE LOGIC END ---
 
             setUser(data.user);
