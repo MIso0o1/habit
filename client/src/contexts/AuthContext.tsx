@@ -74,10 +74,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        // Pass the user's access token for context, though the function uses the Service Role Key
-                        'Authorization': `Bearer ${data.user.access_token}`
+                        'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
                     },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({
+                        ...payload,
+                        secret: import.meta.env.VITE_CRON_SECRET
+                    })
                 });
 
                 if (!response.ok) {
