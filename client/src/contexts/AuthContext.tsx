@@ -22,7 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Supabase Auth Listener
     useEffect(() => {
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
             if (session) {
                 setUser(session.user);
                 setIsAuthenticated(true);
@@ -43,7 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         return () => {
-            subscription.unsubscribe();
+            authListener.subscription.unsubscribe();
         };
     }, []);
 
@@ -62,44 +62,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         if (data.user) {
-            // --- RESILIENT UPDATE LOGIC START ---
-            
+            // --- FINAL SOLUTION: Call Edge Function to bypass RLS/Triggers ---
             const payload = { 
-                timezone: userTimezone,
-                last_check_date: '1970-01-01' 
+                user_id: data.user.id,
+                timezone: userTimezone
             };
 
-            const attemptUpdate = async () => {
-                return supabase
-                    .from('user_profiles')
-                    .update(payload)
-                    .eq('id', data.user.id)
-                    .select();
-            };
+            // NOTE: The URL is relative to your Supabase project's base URL
+            try {
+                const response = await fetch('/functions/v1/update-profile-timezone', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // Pass the user's access token for context, though the function uses the Service Role Key
+                        'Authorization': `Bearer ${data.user.access_token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-            // 1. Try the update immediately
-            let { error: profileError, data: updateData } = await attemptUpdate();
-
-            // 2. If the update failed (likely because the row wasn't created yet), wait and try again
-            if (profileError || !updateData || updateData.length === 0) {
-                console.warn('Initial profile update failed. Waiting 1 second for database trigger to create row...');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Try the update again
-                ({ error: profileError, data: updateData } = await attemptUpdate());
-                
-                // --- NEW DEBUGGING LOGIC ---
-                if (profileError) {
-                    console.error('Second update attempt FAILED:', profileError);
-                } else if (updateData && updateData.length > 0) {
-                    console.log('Second update attempt SUCCEEDED. Rows updated:', updateData.length);
+                if (!response.ok) {
+                    console.error('Edge Function call failed:', response.status, response.statusText);
                 } else {
-                    console.error('Second update attempt FAILED: No error object, but no rows updated.');
+                    console.log('Profile update successfully delegated to Edge Function.');
                 }
-                // --- END NEW DEBUGGING LOGIC ---
+            } catch (error) {
+                console.error('Error calling Edge Function:', error);
             }
-
-            // --- RESILIENT UPDATE LOGIC END ---
+            // --- END EDGE FUNCTION CALL LOGIC ---
 
             setUser(data.user);
             setIsAuthenticated(true);
