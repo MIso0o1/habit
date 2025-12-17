@@ -70,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // NOTE: The URL is relative to your Supabase project's base URL
             try {
-                const response = await fetch('/functions/v1/update-profile-timezone', {
+                const response = await fetch('https://mbrqjbkxorxwyrhzfimv.supabase.co/functions/v1/update-profile-timezone', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
