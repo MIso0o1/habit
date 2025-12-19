@@ -79,9 +79,9 @@ export default function HelpDialog() {
                                     <span className="text-purple-600 font-bold">3</span>
                                 </div>
                                 <div>
-                                    <h4 className="font-semibold">Daily Check at 23:59</h4>
+                                    <h4 className="font-semibold">Daily Check after 23:00</h4>
                                     <p className="text-sm text-muted-foreground">
-                                        Every day at 23:59 (11:59 PM), the system automatically checks your habit completion for that day.
+                                        Every day after 23:00 (11:00 PM), the system automatically checks your habit completion for that day.
                                     </p>
                                 </div>
                             </div>
@@ -101,7 +101,7 @@ export default function HelpDialog() {
                                     </h4>
                                     <p className="text-sm text-green-700">
                                         When you complete <strong>all</strong> your habits for the day, your tree gains 25 health points. 
-                                        More flowers and leaves appear, making your tree more vibrant!
+                                        More flowers appear, making your tree more vibrant!
                                     </p>
                                 </div>
                             </div>
@@ -115,7 +115,7 @@ export default function HelpDialog() {
                                     </h4>
                                     <p className="text-sm text-red-700">
                                         When you miss <strong>any</strong> habit for the day, your tree loses 25 health points. 
-                                        Flowers and leaves start to disappear, showing the impact of inconsistency.
+                                        Flowers start to disappear, showing the impact of inconsistency.
                                     </p>
                                 </div>
                             </div>
@@ -128,27 +128,27 @@ export default function HelpDialog() {
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between items-center p-2 bg-green-50 rounded">
                                 <span className="font-medium">100% Health</span>
-                                <span className="text-muted-foreground">Full bloom - all flowers/leaves visible</span>
+                                <span className="text-muted-foreground">Full bloom - all flowers visible</span>
                             </div>
                             <div className="flex justify-between items-center p-2 bg-yellow-50 rounded">
                                 <span className="font-medium">86-99% Health</span>
-                                <span className="text-muted-foreground">50% of flowers/leaves visible</span>
+                                <span className="text-muted-foreground">50% of flowers visible</span>
                             </div>
                             <div className="flex justify-between items-center p-2 bg-orange-50 rounded">
                                 <span className="font-medium">61-85% Health</span>
-                                <span className="text-muted-foreground">20% of flowers/leaves visible</span>
+                                <span className="text-muted-foreground">20% of flowers visible</span>
                             </div>
                             <div className="flex justify-between items-center p-2 bg-red-50 rounded">
                                 <span className="font-medium">31-60% Health</span>
-                                <span className="text-muted-foreground">5% of flowers/leaves visible</span>
+                                <span className="text-muted-foreground">5% of flowers visible</span>
                             </div>
                             <div className="flex justify-between items-center p-2 bg-red-100 rounded">
                                 <span className="font-medium">1-30% Health</span>
-                                <span className="text-muted-foreground">2% of flowers/leaves visible</span>
+                                <span className="text-muted-foreground">2% of flowers visible</span>
                             </div>
                             <div className="flex justify-between items-center p-2 bg-gray-100 rounded">
                                 <span className="font-medium">0% Health</span>
-                                <span className="text-muted-foreground">Completely bare - no flowers/leaves</span>
+                                <span className="text-muted-foreground">Completely bare - no flowers</span>
                             </div>
                         </div>
                     </section>
