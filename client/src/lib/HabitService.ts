@@ -118,6 +118,26 @@ export const HabitService = {
     /**
      * Deletes a habit.
      */
+    /**
+     * Updates a habit's name.
+     */
+    async updateHabit(habitId: number, newName: string): Promise<void> {
+        const { error } = await supabase
+            .from('habits')
+            .update({ name: newName.trim() })
+            .eq('id', habitId);
+
+        if (error) {
+            if (error.code === '23505') { // Unique constraint violation
+                throw new Error('You already have a habit with this name.');
+            }
+            throw new Error(error.message);
+        }
+    },
+
+    /**
+     * Deletes a habit.
+     */
     async deleteHabit(habitId: number): Promise<void> {
         const { error } = await supabase
             .from('habits')

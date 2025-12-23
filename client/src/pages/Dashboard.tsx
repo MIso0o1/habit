@@ -7,9 +7,69 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-import { Trash2, LogOut, Plus } from 'lucide-react';
+import { Trash2, LogOut, Plus, Pencil, Send } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import axios from 'axios';
 
 
+
+// Minimalistic Contact Form Component
+const ContactForm = () => {
+    const [email, setEmail] = useState('');
+    const [message, setMessage] = useState('');
+    const [isSending, setIsSending] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!email.trim() || !message.trim()) {
+            toast.error('Please fill in both email and message fields.');
+            return;
+        }
+
+        setIsSending(true);
+
+        try {
+            // The API endpoint is relative to the root, which the Express server handles
+            await axios.post('/api/contact', { email, message });
+
+            toast.success('Message sent successfully! Thank you for reaching out.');
+            setEmail('');
+            setMessage('');
+        } catch (error) {
+            console.error('Contact form submission error:', error);
+            toast.error('Failed to send message. Please try again later.');
+        } finally {
+            setIsSending(false);
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <Input
+                type="email"
+                placeholder="Your Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isSending}
+                required
+            />
+            <Textarea
+                placeholder="Your Message"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                disabled={isSending}
+                required
+                rows={3}
+            />
+            <Button type="submit" disabled={isSending} className="w-full gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                <Send className="w-4 h-4" />
+                {isSending ? 'Sending...' : 'Send Message'}
+            </Button>
+        </form>
+    );
+};
 
 export default function Dashboard() {
     const { isAuthenticated, logout, user } = useAuth();
@@ -18,6 +78,9 @@ export default function Dashboard() {
     const [newHabitName, setNewHabitName] = useState('');
     const [loading, setLoading] = useState(true);
     const [addingHabit, setAddingHabit] = useState(false);
+    const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+    const [editHabitName, setEditHabitName] = useState('');
+    const [isUpdating, setIsUpdating] = useState(false);
 
     // Redirect if not authenticated
     useEffect(() => {
@@ -65,6 +128,30 @@ export default function Dashboard() {
             toast.error(error.message || 'Failed to add habit');
         } finally {
             setAddingHabit(false);
+        }
+    };
+
+    const handleUpdateHabit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (!editingHabit || !editHabitName.trim()) {
+            toast.error('Habit name cannot be empty');
+            return;
+        }
+
+        setIsUpdating(true);
+
+        try {
+            await HabitService.updateHabit(editingHabit.id, editHabitName);
+
+            toast.success('Habit updated successfully!');
+            setEditingHabit(null); // Close dialog
+            setEditHabitName('');
+            await fetchHabits();
+        } catch (error: any) {
+            toast.error(error.message || 'Failed to update habit');
+        } finally {
+            setIsUpdating(false);
         }
     };
 
@@ -127,9 +214,9 @@ export default function Dashboard() {
         );
     }
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-            <div className="max-w-4xl mx-auto">
+	    return (
+	        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4 relative">
+	            <div className="max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-8">
                     <div>
@@ -173,6 +260,8 @@ export default function Dashboard() {
                     </CardContent>
                 </Card>
 
+
+
                 {/* Habits List */}
                 <div className="space-y-4">
                     {habits.length === 0 ? (
@@ -208,14 +297,63 @@ export default function Dashboard() {
                                                     <p className="text-2xl font-bold text-blue-600">{habit.logs.length}</p>
                                                     <p className="text-xs text-gray-500">days completed</p>
                                                 </div>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    onClick={() => handleDeleteHabit(habit.id, habit.name)}
-                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                                                >
-                                                    <Trash2 className="w-4 h-4" />
-                                                </Button>
+                                                <div className="flex gap-1">
+                                                    <Dialog open={editingHabit?.id === habit.id} onOpenChange={(open) => {
+                                                        if (!open) {
+                                                            setEditingHabit(null);
+                                                            setEditHabitName('');
+                                                        }
+                                                    }}>
+                                                        <DialogTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                onClick={() => {
+                                                                    setEditingHabit(habit);
+                                                                    setEditHabitName(habit.name);
+                                                                }}
+                                                                className="text-gray-500 hover:text-blue-700 hover:bg-blue-50"
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </Button>
+                                                        </DialogTrigger>
+                                                        <DialogContent className="sm:max-w-[425px]">
+                                                            <DialogHeader>
+                                                                <DialogTitle>Edit Habit</DialogTitle>
+                                                                <DialogDescription>
+                                                                    Make changes to your habit name here. Click save when you're done.
+                                                                </DialogDescription>
+                                                            </DialogHeader>
+                                                            <form onSubmit={handleUpdateHabit} className="grid gap-4 py-4">
+                                                                <div className="grid grid-cols-4 items-center gap-4">
+                                                                    <label htmlFor="name" className="text-right">
+                                                                        Name
+                                                                    </label>
+                                                                    <Input
+                                                                        id="name"
+                                                                        value={editHabitName}
+                                                                        onChange={(e) => setEditHabitName(e.target.value)}
+                                                                        className="col-span-3"
+                                                                        disabled={isUpdating}
+                                                                    />
+                                                                </div>
+                                                                <DialogFooter>
+                                                                    <Button type="submit" disabled={isUpdating}>
+                                                                        {isUpdating ? 'Saving...' : 'Save changes'}
+                                                                    </Button>
+                                                                </DialogFooter>
+                                                            </form>
+                                                        </DialogContent>
+                                                    </Dialog>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleDeleteHabit(habit.id, habit.name)}
+                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     </CardContent>
@@ -223,8 +361,32 @@ export default function Dashboard() {
                             );
                         })
                     )}
-                </div>
-            </div>
-        </div>
-    );
-}
+	                </div>
+	            </div>
+	            {/* Floating Contact Button */}
+	            <div className="fixed bottom-6 right-6 z-50">
+	                <Dialog>
+	                    <DialogTrigger asChild>
+	                        <Button
+	                            variant="default"
+	                            size="icon"
+	                            className="w-14 h-14 rounded-full shadow-2xl bg-white hover:bg-gray-50 border border-gray-300 text-gray-800 transition-all duration-300"
+	                            aria-label="Contact Me"
+	                        >
+	                            <Send className="w-6 h-6" />
+	                        </Button>
+	                    </DialogTrigger>
+	                    <DialogContent className="sm:max-w-[425px]">
+	                        <DialogHeader>
+	                            <DialogTitle>Contact Me</DialogTitle>
+	                            <DialogDescription>
+	                                Have a question or suggestion? Send me a message!
+	                            </DialogDescription>
+	                        </DialogHeader>
+	                        <ContactForm />
+	                    </DialogContent>
+	                </Dialog>
+	            </div>
+	        </div>
+	    );
+	}
