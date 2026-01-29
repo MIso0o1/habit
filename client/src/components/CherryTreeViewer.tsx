@@ -121,8 +121,8 @@ export default function CherryTreeViewer({ selectedTree = 'cherry', treeHealth =
   const treeConfig = {
     cherry: {
       path: "/models/scene.gltf",
-      scale: 0.55,
-      position: [0, -1.4, 0] as [number, number, number],
+      scale: 0.50,
+      position: [0, -1.1, 0] as [number, number, number],
       cameraPosition: [1.2, 1.3, 5] as [number, number, number],
     },
     ficus: {
