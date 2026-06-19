@@ -1,4 +1,4 @@
-import { Environment, OrbitControls, useGLTF } from "@react-three/drei";
+import { Environment, OrbitControls, useGLTF, useProgress } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Suspense, useState, useRef, useEffect, useMemo } from "react";
 import { Progress } from "./ui/progress"; // Assuming this path is correct
@@ -100,11 +100,29 @@ function TreeModel({ modelPath, scale = 0.6, position = [0, -1.4, 0], treeHealth
 }
 
 function LoadingScreen() {
+  const { progress } = useProgress();
   return (
-    <div className="absolute inset-0 flex items-center justify-center bg-white z-50">
-      <div className="text-center space-y-4">
-        <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin mx-auto"></div>
-        <p className="text-sm text-muted-foreground">Loading tree...</p>
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white z-50 transition-opacity duration-500">
+      <div className="text-center space-y-6 w-full max-w-[200px]">
+        <div className="relative w-16 h-16 mx-auto">
+          <div className="absolute inset-0 border-4 border-primary/10 rounded-full"></div>
+          <div 
+            className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"
+            style={{ animationDuration: '1s' }}
+          ></div>
+        </div>
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-foreground tracking-wide">Loading tree...</p>
+          <div className="h-1 w-full bg-primary/10 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-primary transition-all duration-300 ease-out"
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest">
+            {Math.round(progress)}%
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -115,7 +133,18 @@ interface CherryTreeViewerProps {
 }
 
 export default function CherryTreeViewer({ selectedTree = 'cherry', treeHealth = 100 }: CherryTreeViewerProps & { treeHealth?: number }) {
-  const [loaded, setLoaded] = useState(false);
+  const { active, progress } = useProgress();
+  const [showLoading, setShowLoading] = useState(true);
+
+  // Keep the loading screen visible until progress is 100% and it's no longer active
+  useEffect(() => {
+    if (!active && progress === 100) {
+      const timer = setTimeout(() => setShowLoading(false), 500); // Small delay for smooth transition
+      return () => clearTimeout(timer);
+    } else {
+      setShowLoading(true);
+    }
+  }, [active, progress]);
 
   // Configure model settings based on selected tree
   const treeConfig = {
@@ -137,17 +166,14 @@ export default function CherryTreeViewer({ selectedTree = 'cherry', treeHealth =
 
   return (
     <div className="w-full h-full min-h-[600px] relative bg-white">
-      {!loaded && <LoadingScreen />}
+      {showLoading && <LoadingScreen />}
       
-
-
       <Canvas
         key={selectedTree} // Key the Canvas to force re-render and reset camera controls
         camera={{ position: config.cameraPosition, fov: 45 }}
         shadows
         className="w-full h-full"
         gl={{ antialias: true, powerPreference: "high-performance" }}
-        onCreated={() => setLoaded(true)}
       >
         <color attach="background" args={["#ffffff"]} />
         
