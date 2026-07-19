@@ -11,9 +11,9 @@ interface TreeModelProps {
 }
 
 function TreeModel({ modelPath, scale = 0.6, position = [0, -1.4, 0], treeHealth }: TreeModelProps) {
-  const isCherry = modelPath.includes("scene_optimized.glb");
-  const isFicus = modelPath.includes("ficus_optimized.glb");
-  const { scene } = useGLTF(modelPath, "https://www.gstatic.com/draco/versioned/decoders/1.5.6/");
+  const isCherry = modelPath.includes("scene.gltf");
+  const isFicus = modelPath.includes("ficus_bonsai.glb");
+  const { scene } = useGLTF(modelPath);
   const groupRef = useRef<any>(null);
   const meshRefs = useRef<Map<string, any>>(new Map());
 
@@ -149,13 +149,13 @@ export default function CherryTreeViewer({ selectedTree = 'cherry', treeHealth =
   // Configure model settings based on selected tree
   const treeConfig = {
     cherry: {
-      path: "/models/scene_optimized.glb",
+      path: "/models/scene.gltf",
       scale: 0.50,
       position: [0, -1.1, 0] as [number, number, number],
       cameraPosition: [1.4, 1.3, 5] as [number, number, number],
     },
     ficus: {
-      path: "/models/ficus_optimized.glb",
+      path: "/models/ficus_bonsai.glb",
       scale: 2.2,
       position: [0.05, -0.65, 0] as [number, number, number],
       cameraPosition: [0, 0.5, -3] as [number, number, number],

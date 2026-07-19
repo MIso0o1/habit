@@ -129,3 +129,5 @@ For any questions or feedback, please open an issue on GitHub or use the contact
 
 ---
 
+**Manus AI**
+February 3, 2026
