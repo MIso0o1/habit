@@ -112,7 +112,7 @@ function LoadingScreen() {
           ></div>
         </div>
         <div className="space-y-2">
-          <p className="text-sm font-medium text-foreground tracking-wide">Loading tree...</p>
+          <p className="text-sm font-medium text-foreground tracking-wide">Loading tree... takes a bit longer first time</p>
           <div className="h-1 w-full bg-primary/10 rounded-full overflow-hidden">
             <div 
               className="h-full bg-primary transition-all duration-300 ease-out"
